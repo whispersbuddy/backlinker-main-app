@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id                     String    @id @default(cuid())
+  name                   String?
+  email                  String?   @unique
+  emailVerified          DateTime?
+  image                  String?
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @default(now()) @map("updated_at")
+  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
+  stripeCustomerId       String?   @unique @map("stripe_customer_id")
+  stripePriceId          String?   @map("stripe_price_id")
+  stripeSubscriptionId   String?   @unique @map("stripe_subscription_id")
+  bio                    String?
+  website                String?
+  onboarded              Boolean   @default(false)
+  connectivelyPassword   String?   @default("")
+  connectivelyUsername   String?   @default("")
+  incompleteInformation  Boolean   @default(true)
+  newSignup              Boolean   @default(true)
+  Personas               Persona[]
+  accounts               Account[]
+  Pitches                Pitch[]
+  sessions               Session[]
+
+  @@map("users")
+}
+
+model Persona {
+  id        String   @id @default(cuid())
+  name      String?
+  bio       String?
+  website   String?
+  email     String?
+  headshot  String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+  userId    String
+  linkedin  String?
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Pitch {
+  id                  String   @id @default(cuid())
+  subject             String
+  body                String
+  opportunityId       String?
+  userId              String
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @default(now()) @map("updated_at")
+  connectivelyPitchId String?
+  query               String
+  queryRequirements   String
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@map("pitches")
+}
