@@ -14,5 +14,10 @@ jobs:
           node-version: "18"
       - name: Install
         run: npm install
-      - name: Deploy DB Changes
-        run: DATABASE_URL=${{ secrets.DATABASE_URL }} npx prisma migrate deploy
+      - name: Set DATABASE_URL environment variable
+        run: echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+
+      - name: Run Prisma Migrate and Generate
+        run: npx prisma generate && npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}  # Use the secret here
